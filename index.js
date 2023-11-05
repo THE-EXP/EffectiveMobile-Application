@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const http = require('http');
+const axios = require('axios');
 require('dotenv').config('./');
 const crypto = require('crypto');
 const pg = require('pg');
@@ -14,7 +14,6 @@ const pool = new pg.Pool();
 async function init() {
   pool.query(
     `create table if not exists ${table} (
-      ID bigserial,
       UUID TEXT,
       MAIL TEXT NOT NULL,
       USERNAME TEXT NOT NULL,
@@ -40,6 +39,17 @@ async function addUser(req, res) {
     var result = await client.query(`select * from ${table} where username='${username}' or email='${email}'`);
     if (result == null) {
       var result = await client.query(`insert into ${table} (USERNAME, EMAIL, UUID) values ('${username}', '${email}', '${randomUUID}')`);
+			console.log(await axios.request({
+				method: 'POST',
+				baseURL: 'http://localhost:8081/api/',
+				url: `/addEntry`,
+				data: {
+					UUID: randomUUID,
+					action: 'CREATE USER',
+					username: username,
+					email: email
+				}
+			}).then((response) => {console.log(JSON.stringify(response.data))}).catch((err) =>{if(err){console.error(err);}}));
       res.send(`user ${username} has been succesfully created\n${JSON.stringify(result)}`);
       } else {
         res.send(`User with this username and/or email already exists!\nPlease chose another username and/or use different email address`);
