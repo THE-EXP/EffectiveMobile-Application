@@ -1,0 +1,195 @@
+{
+	"info": {
+		"_postman_id": "f1616273-eb4a-4e78-b201-60bfed22afd4",
+		"name": "EMJAC",
+		"description": "Collection contains a total of 4 valid request endpoints and a 1 internal request endpoint",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24993465"
+	},
+	"item": [
+		{
+			"name": "Add User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/addUser?username=JohnDoe&email=johndoe@somedomain.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"addUser"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "JohnDoe"
+						},
+						{
+							"key": "email",
+							"value": "johndoe@somedomain.com"
+						}
+					]
+				},
+				"description": "- Add a user to the database\n- spawn History CREATE event"
+			},
+			"response": []
+		},
+		{
+			"name": "Edit User",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/editUser?username=JohnDoe&new_email=johnsondoe@somedomain.com&new_username=JohnSonDoe",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"editUser"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "JohnDoe"
+						},
+						{
+							"key": "new_email",
+							"value": "johnsondoe@somedomain.com"
+						},
+						{
+							"key": "new_username",
+							"value": "JohnSonDoe"
+						}
+					]
+				},
+				"description": "- Edit user Email and/or Username\n    \n- Spawn history EDIT event"
+			},
+			"response": []
+		},
+		{
+			"name": "Query Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/query?queryBy=username&username=JohnDoe",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"query"
+					],
+					"query": [
+						{
+							"key": "queryBy",
+							"value": "username"
+						},
+						{
+							"key": "username",
+							"value": "JohnDoe"
+						},
+						{
+							"key": "uuid",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "email",
+							"value": "johndoe@something.com",
+							"disabled": true
+						}
+					]
+				},
+				"description": "- Get info about the user, can be queried by username, email or uuid"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Edits History",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HistoryURL}}query?uuid=47c331b7-966a-48b4-8bea-4ac256e34fb5",
+					"host": [
+						"{{HistoryURL}}query"
+					],
+					"query": [
+						{
+							"key": "uuid",
+							"value": "47c331b7-966a-48b4-8bea-4ac256e34fb5"
+						}
+					]
+				},
+				"description": "- get history of edits, can be filtered to a single user using uuid\n    \n- if UUID is empty, then returns the whole edits history"
+			},
+			"response": []
+		},
+		{
+			"name": "Add History Event",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{HistoryURL}}addEntry",
+					"host": [
+						"{{HistoryURL}}addEntry"
+					]
+				},
+				"description": "- Internal endpoint, used by main service to tell history service to create an Event entry"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BaseURL",
+			"value": "http://localhost:8080/api/"
+		},
+		{
+			"key": "HistoryURL",
+			"value": "http://localhost:8081/api/"
+		}
+	]
+}
