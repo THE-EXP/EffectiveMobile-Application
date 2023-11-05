@@ -1,10 +1,11 @@
 const express = require('express');
 const app = express();
-const axios = require('axios');
+const axios = require('axios'); //* currently easy to use and test, changing to MQTT exchange might be more foolproof and secure thatn current design
 require('dotenv').config('./');
 const crypto = require('crypto');
 const pg = require('pg');
 app.set(express.urlencoded({extended: true}));
+app.use(express.json());
 //* Required Modules
 
 const mainPort = process.env.MAIN_SERVER_PORT || 8080; //* get app port from the config, otherwise use the default 8080
@@ -15,8 +16,8 @@ async function init() {
   pool.query(
     `create table if not exists ${table} (
       UUID TEXT,
-      MAIL TEXT NOT NULL,
       USERNAME TEXT NOT NULL,
+      EMAIL TEXT NOT NULL,
       PRIMARY KEY (UUID)
       );`
   );
@@ -36,8 +37,9 @@ async function addUser(req, res) {
     var username = req.query.username;
     var email = req.query.email;
 		var randomUUID = crypto.randomUUID();
+    console.log(username, email, randomUUID);
     var result = await client.query(`select * from ${table} where username='${username}' or email='${email}'`);
-    if (result == null) {
+    if (result.rows[0] == null) {
       var result = await client.query(`insert into ${table} (USERNAME, EMAIL, UUID) values ('${username}', '${email}', '${randomUUID}')`);
 			console.log(await axios.request({
 				method: 'POST',
@@ -50,7 +52,7 @@ async function addUser(req, res) {
 					email: email
 				}
 			}).then((response) => {console.log(JSON.stringify(response.data))}).catch((err) =>{if(err){console.error(err);}}));
-      res.send(`user ${username} has been succesfully created\n${JSON.stringify(result)}`);
+      res.send(`user ${username} has been succesfully created\nUser's UUID is ${randomUUID}`);
       } else {
         res.send(`User with this username and/or email already exists!\nPlease chose another username and/or use different email address`);
       }
@@ -71,11 +73,49 @@ async function editUser(req, res) {
     var user = await client.query(`select * from ${table} where username = '${change}'`);
     if (user == null) {
       res.send(`No user with provided username(${change}) exists!`)
-    } else if (new_email != null) {
+    } else if (new_username != null && new_email != null){
+      client.query(`update ${table} set username = '${new_username}', email = '${new_email}' where uuid = '${user.rows[0].uuid}'`);
+      console.log(await axios.request({
+				method: 'POST',
+				baseURL: 'http://localhost:8081/api/',
+				url: `/addEntry`,
+				data: {
+					UUID: user.rows[0].uuid,
+					action: 'EDIT BOTH',
+          old_email: user.rows[0].email,
+          new_email: new_email,
+					old_username: user.rows[0].username,
+          new_username: new_username
+				}
+			}).then((response) => {console.log(JSON.stringify(response.data))}).catch((err) =>{if(err){console.error(err);}}));
+      res.send(`New username for user ${change} is now ${new_username}, and new email is ${new_email}`);
+    } else if (new_username == null) {
       client.query(`update ${table} set email = '${new_email}' where uuid = '${user.rows[0].uuid}'`);
+      console.log(await axios.request({
+				method: 'POST',
+				baseURL: 'http://localhost:8081/api/',
+				url: `/addEntry`,
+				data: {
+					UUID: user.rows[0].uuid,
+					action: 'EDIT EMAIL',
+					old_email: user.rows[0].email,
+          new_email: new_email
+				}
+			}).then((response) => {console.log(JSON.stringify(response.data))}).catch((err) =>{if(err){console.error(err);}}));
       res.send(`New email for user ${change} is now ${new_email}`);
-    } else if (new_username != null) {
-      client.query(`update ${table} set username = '${new_username}' where uuid = '${user}'`);
+    } else if (new_email == null) {
+      client.query(`update ${table} set username = '${new_username}' where uuid = '${user.rows[0].uuid}'`);
+      console.log(await axios.request({
+				method: 'POST',
+				baseURL: 'http://localhost:8081/api/',
+				url: `/addEntry`,
+				data: {
+					UUID: user.rows[0].uuid,
+					action: 'EDIT USERNAME',
+					old_username: user.rows[0].username,
+          new_username: new_username
+				}
+			}).then((response) => {console.log(JSON.stringify(response.data))}).catch((err) =>{if(err){console.error(err);}}));
       res.send(`New username for user ${change} is now ${new_username}`);
     }
   }
@@ -90,7 +130,7 @@ async function queryUsers(req, res) {
       case 'username':
         if (req.query.username != null){
           var result = await client.query(`select * from ${table} where username = '${req.query.username}'`);
-          res.send(JSON.stringify(result.rows));
+          res.json(result.rows);
         } else {
           res.send(`Username expected, got <Null> instead`);
         }
@@ -106,7 +146,7 @@ async function queryUsers(req, res) {
       case 'uuid':
         if (req.query.username != null){
         	var result = await client.query(`select * from ${table} where uuid = '${req.query.uuid}'`);
-          res.send(JSON.stringify(result.rows));
+          res.json(result.rows);
         } else {
           res.send(`UUID expected, got <Null> instead`);
         }
