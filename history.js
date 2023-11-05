@@ -60,8 +60,8 @@ async function addEntry(req,res) {
 async function queryEdits(req,res) {
   const client = await pool.connect();
   if (req.query.uuid != null) {
-		var edits = await client.query(`select * from ${table} where uuid = ${req.query.uuid}`);
-		res.json(JSON.stringify(edits.rows));
+		var edits = await client.query(`select * from ${table} where relevantuuid = '${req.query.uuid}'`);
+		res.json(edits.rows);
   } else {
 		var edits = await client.query(`select * from ${table}`);
 		res.json(edits.rows);
