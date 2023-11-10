@@ -1,3 +1,6 @@
+# Synopsis
+* Rejected by the company as "not good enough"
+
 # Prerequisites
 * install latest Node.js package from [here](https://nodejs.org/en/download/current)
 * do the same for postgresql [download](https://www.postgresql.org/download/)
