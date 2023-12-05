@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const axios = require('axios'); //* currently easy to use and test, changing to MQTT exchange might be more foolproof and secure thatn current design
+const axios = require('axios'); //* currently easy to use and test, changing to MQTT exchange might be more foolproof and secure than current design
 require('dotenv').config('./');
 const crypto = require('crypto');
 const pg = require('pg');
